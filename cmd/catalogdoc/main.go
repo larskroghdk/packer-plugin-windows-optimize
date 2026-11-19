@@ -8,7 +8,7 @@
 //	go run ./cmd/catalogdoc [-check] [-o docs/catalog.md]
 //
 // With -check it writes nothing and exits with status 1 when the file is out of
-// date.
+// date. CRLF line endings from a Windows checkout are ignored.
 package main
 
 import (
@@ -56,7 +56,7 @@ var categoryTitles = map[catalog.Category]string{
 // main generates the catalog document and writes or checks it.
 //
 // Author: Lars Krogh
-// Version: 1.0.0
+// Version: 1.1.0
 func main() {
 	check := flag.Bool("check", false, "fail when the file is out of date instead of writing it")
 	out := flag.String("o", "docs/catalog.md", "output file")
@@ -69,7 +69,7 @@ func main() {
 	doc := render(all)
 	if *check {
 		current, err := os.ReadFile(*out)
-		if err != nil || !bytes.Equal(current, doc) {
+		if err != nil || !bytes.Equal(bytes.ReplaceAll(current, []byte("\r\n"), []byte("\n")), doc) {
 			fmt.Fprintf(os.Stderr, "%s is out of date; run go run ./cmd/catalogdoc\n", *out)
 			os.Exit(1)
 		}
