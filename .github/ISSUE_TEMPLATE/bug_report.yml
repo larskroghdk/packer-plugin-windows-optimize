@@ -1,0 +1,81 @@
+name: Bug report
+description: The plugin failed, broke the Packer session, or applied, verified or rolled back an optimization incorrectly.
+labels: [bug]
+body:
+  - type: input
+    id: plugin-version
+    attributes:
+      label: Plugin version
+      placeholder: v1.0.0
+    validations:
+      required: true
+  - type: input
+    id: packer-version
+    attributes:
+      label: Packer version
+      description: Output of `packer version`.
+    validations:
+      required: true
+  - type: dropdown
+    id: builder
+    attributes:
+      label: Builder
+      options:
+        - hyperv-iso
+        - hyperv-vmcx
+        - vsphere-iso
+        - azure-arm
+        - "null"
+        - Other
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Guest OS
+      options:
+        - Windows Server 2016
+        - Windows Server 2019
+        - Windows Server 2022
+        - Windows Server 2025
+        - Windows 10
+        - Windows 11
+        - Other
+    validations:
+      required: true
+  - type: dropdown
+    id: installation
+    attributes:
+      label: Installation type
+      options:
+        - Desktop Experience / client
+        - Server Core
+    validations:
+      required: true
+  - type: textarea
+    id: config
+    attributes:
+      label: Provisioner configuration
+      description: The `windows-optimize` provisioner block.
+      render: hcl
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you expected, and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: report
+    attributes:
+      label: Report
+      description: The relevant optimizations, connectivity checks and warnings from the JSON report, or the whole file.
+      render: json
+  - type: textarea
+    id: log
+    attributes:
+      label: Packer log
+      description: Output of the run with `PACKER_LOG=1`. Remove secrets.
+      render: text

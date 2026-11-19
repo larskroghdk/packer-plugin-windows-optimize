@@ -1,0 +1,31 @@
+name: Feature request
+description: Suggest a new optimization, a protection rule, or an option.
+labels: [enhancement]
+body:
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Kind
+      options:
+        - New optimization
+        - Change to an existing optimization
+        - WinRM protection rule
+        - Configuration option
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What you're trying to do, and why the plugin doesn't support it today.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: >-
+        How it could work. For an optimization, name the exact registry value, service, task or power setting,
+        the operating systems it applies to, the measured or documented benefit, and link a Microsoft source
+        that describes it. Settings that weaken security or that only community sources describe are not accepted.

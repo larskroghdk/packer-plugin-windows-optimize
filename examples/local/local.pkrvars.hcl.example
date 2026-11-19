@@ -1,0 +1,5 @@
+host     = "192.168.1.50"
+username = "Administrator"
+password = "change-me"
+profile  = "recommended"
+dry_run  = true
