@@ -1,5 +1,7 @@
 # ⚡ packer-plugin-windows-optimize
 
+[![Build](https://github.com/larskroghdk/packer-plugin-windows-optimize/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/larskroghdk/packer-plugin-windows-optimize/actions/workflows/build.yml)
+
 A Packer provisioner that applies a small, validated set of Windows performance and image optimizations over WinRM. Every change is inspected first, recorded for rollback, applied, and verified by reading it back. Nothing that could cut off Packer's own WinRM session is changed, and nothing weakens Windows security.
 
 ## ✨ What it does
