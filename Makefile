@@ -45,7 +45,7 @@ test-go:
 	go test ./...
 
 test-ps:
-	$(PESTER_SHELL) -NoProfile -ExecutionPolicy Bypass -Command '$$c = New-PesterConfiguration; $$c.Run.Path = "test/pester"; $$c.Run.Exit = $$true; $$c.Output.Verbosity = "Detailed"; Invoke-Pester -Configuration $$c'
+	$(PESTER_SHELL) -NoProfile -ExecutionPolicy Bypass -Command '$$env:PSModulePath = (Join-Path ([Environment]::GetFolderPath("MyDocuments")) "WindowsPowerShell\Modules") + ";" + [Environment]::GetEnvironmentVariable("PSModulePath", "Machine"); Import-Module Pester -MinimumVersion 5.0; $$c = New-PesterConfiguration; $$c.Run.Path = "test/pester"; $$c.Run.Exit = $$true; $$c.Output.Verbosity = "Detailed"; Invoke-Pester -Configuration $$c'
 
 test-integration:
 	go test -tags integration -v -count=1 -timeout 90m ./test/integration
