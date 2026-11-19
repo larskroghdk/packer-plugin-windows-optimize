@@ -1,0 +1,44 @@
+# 📦 Installation
+
+## From a release
+
+Add the plugin to `required_plugins` and run `packer init`:
+
+```hcl
+packer {
+  required_plugins {
+    windows-optimize = {
+      source  = "github.com/larskroghdk/windows-optimize"
+      version = ">= 1.0.0"
+    }
+  }
+}
+```
+
+```sh
+packer init .
+```
+
+Or install it directly:
+
+```sh
+packer plugins install github.com/larskroghdk/windows-optimize
+```
+
+Releases contain Windows binaries for amd64 and arm64, because the plugin is built and supported for Packer running on Windows. They also contain a `SHA256SUMS` file and its detached GPG signature. Packer verifies the checksum when it installs the plugin.
+
+## From source
+
+```sh
+go build -o packer-plugin-windows-optimize.exe .
+packer plugins install --path packer-plugin-windows-optimize.exe github.com/larskroghdk/windows-optimize
+```
+
+A local build reports version `1.0.0-dev`. Templates that pin `version = ">= 1.0.0"` in `required_plugins` don't accept a prerelease, so leave the `required_plugins` entry out while testing a local build, as [examples/local](../examples/local/) does.
+
+## Requirements on the build
+
+- The communicator must be `winrm`. The plugin refuses to run over SSH.
+- The WinRM user must have an elevated administrator token. With a local account other than the built-in Administrator, this usually means `LocalAccountTokenFilterPolicy = 1`, which the plugin never changes.
+- The guest must run 64-bit Windows PowerShell 5.1, which every supported Windows version includes.
+- The guest needs write access to `C:\Windows\Temp` (working directory) and `C:\ProgramData` (rollback journal).

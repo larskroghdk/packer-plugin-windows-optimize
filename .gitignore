@@ -1,0 +1,8 @@
+/dist/
+/packer-plugin-windows-optimize
+/packer-plugin-windows-optimize.exe
+windows-optimize-report-*.json
+reports/
+testResults.xml
+examples/local/local.pkrvars.hcl
+examples/hyperv/site.pkrvars.hcl

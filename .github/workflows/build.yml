@@ -1,0 +1,48 @@
+name: Build
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  build:
+    name: Lint, test and build
+    runs-on: windows-2025
+    permissions:
+      contents: write
+    steps:
+      - name: Configure git
+        run: git config --global core.autocrlf false
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - uses: hashicorp/setup-packer@v3
+      - name: Set up msys2
+        uses: msys2/setup-msys2@v2
+        with:
+          install: make tar zip unzip mingw-w64-x86_64-jq
+          path-type: inherit
+      - name: Import GPG key
+        id: import_gpg
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: crazy-max/ghaction-import-gpg@v7
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GPG_PASSPHRASE }}
+      - name: Check, test and build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
+        run: msys2 ./ci-release.sh
+      - name: Archive
+        uses: actions/upload-artifact@v7
+        with:
+          name: artifacts
+          path: |
+            dist/
+            !dist/*/*

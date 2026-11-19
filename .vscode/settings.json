@@ -1,0 +1,36 @@
+{
+  "editor.formatOnSave": true,
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+  "files.exclude": {
+    "dist": true
+  },
+  "[go]": {
+    "editor.defaultFormatter": "golang.go",
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit"
+    }
+  },
+  "go.lintTool": "staticcheck",
+  "go.lintOnSave": "package",
+  "gopls": {
+    "ui.semanticTokens": true
+  },
+  "[powershell]": {
+    "editor.defaultFormatter": "ms-vscode.powershell",
+    "files.eol": "\r\n"
+  },
+  "powershell.codeFormatting.preset": "Stroustrup",
+  "powershell.codeFormatting.useCorrectCasing": true,
+  "powershell.scriptAnalysis.enable": true,
+  "powershell.pester.useLegacyCodeLens": false,
+  "[markdown]": {
+    "editor.defaultFormatter": "DavidAnson.vscode-markdownlint"
+  },
+  "[hcl]": {
+    "editor.defaultFormatter": "hashicorp.hcl"
+  },
+  "files.associations": {
+    "*.pkr.hcl": "hcl"
+  }
+}
