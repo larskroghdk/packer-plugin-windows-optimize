@@ -69,7 +69,7 @@ init: $(GORELEASER) $(STATICCHECK) $(PACKER_SDC)
 	go mod download
 
 $(GORELEASER):
-	go install github.com/goreleaser/goreleaser/v2@v$(GORELEASER_VERSION)
+	GOTOOLCHAIN=auto go install github.com/goreleaser/goreleaser/v2@v$(GORELEASER_VERSION)
 
 $(STATICCHECK):
 	go install honnef.co/go/tools/cmd/staticcheck@$(STATICCHECK_VERSION)
