@@ -8,7 +8,7 @@ PACKER_SDC          ?= $(GOPATH)/bin/packer-sdc
 PWSH                ?= pwsh
 PESTER_SHELL        ?= powershell.exe
 PACKER              ?= packer
-API_VERSION          = $(shell go run . describe 2>/dev/null | jq -r .api_version)
+API_VERSION          = $(shell go run . describe 2>/dev/null | sed -n 's/.*"api_version":"\([^"]*\)".*/\1/p')
 
 .PHONY: check lint fmt-check doccheck catalog-check pslint hclfmt typecheck test test-go test-ps test-integration fmt generate generate-check catalog init build release-snapshot release clean
 
