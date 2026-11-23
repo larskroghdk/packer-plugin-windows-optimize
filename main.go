@@ -13,8 +13,8 @@ import (
 )
 
 var (
-	version           = "1.0.0"
-	versionPrerelease = "dev"
+	version           = "0.1.0"
+	versionPrerelease = ""
 )
 
 // main registers the windows-optimize provisioner with the Packer plugin SDK

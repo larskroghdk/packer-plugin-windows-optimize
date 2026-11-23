@@ -6,7 +6,7 @@ packer {
     }
     windows-optimize = {
       source  = "github.com/larskroghdk/windows-optimize"
-      version = ">= 1.0.0"
+      version = ">= 0.1.0"
     }
   }
 }

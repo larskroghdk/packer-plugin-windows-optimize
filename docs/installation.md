@@ -9,7 +9,7 @@ packer {
   required_plugins {
     windows-optimize = {
       source  = "github.com/larskroghdk/windows-optimize"
-      version = ">= 1.0.0"
+      version = ">= 0.1.0"
     }
   }
 }
@@ -25,7 +25,7 @@ Or install it directly:
 packer plugins install github.com/larskroghdk/windows-optimize
 ```
 
-Releases contain Windows binaries for amd64 and arm64, because the plugin is built and supported for Packer running on Windows. They also contain a `SHA256SUMS` file and its detached GPG signature. Packer verifies the checksum when it installs the plugin.
+Releases contain binaries for Windows, Linux and macOS on amd64 and arm64, so Packer can run on any of them. Only the guest must be Windows. They also contain a `SHA256SUMS` file and its detached GPG signature. Packer verifies the checksum when it installs the plugin.
 
 ## From source
 
@@ -34,7 +34,7 @@ go build -o packer-plugin-windows-optimize.exe .
 packer plugins install --path packer-plugin-windows-optimize.exe github.com/larskroghdk/windows-optimize
 ```
 
-A local build reports version `1.0.0-dev`. Templates that pin `version = ">= 1.0.0"` in `required_plugins` don't accept a prerelease, so leave the `required_plugins` entry out while testing a local build, as [examples/local](../examples/local/) does.
+A local build reports the version in `main.go` without a prerelease suffix, so it satisfies `version = ">= 0.1.0"`. [examples/local](../examples/local/) leaves the `required_plugins` entry out, so it always uses the installed local build.
 
 ## Requirements on the build
 

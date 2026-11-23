@@ -5,7 +5,7 @@ The plugin writes a JSON report to `report_path` at the end of every run, includ
 ```json
 {
   "schema_version": 1,
-  "plugin": "packer-plugin-windows-optimize 1.0.0",
+  "plugin": "packer-plugin-windows-optimize 0.1.0",
   "started_at": "2026-11-19T09:12:03Z",
   "finished_at": "2026-11-19T09:12:41Z",
   "mode": "apply",
