@@ -38,7 +38,7 @@
 
 .NOTES
     Author  : Lars Krogh
-    Version : 1.0.0
+    Version : 1.1.0
 #>
 
 [CmdletBinding()]
@@ -451,21 +451,22 @@ function Get-WOJournalPath {
     Join-Path -Path $env:ProgramData -ChildPath 'packer-plugin-windows-optimize\journal.json'
 }
 
-function Initialize-WOJournalDirectory {
+function Assert-WOJournalDirectory {
     <#
     .SYNOPSIS
-        Creates the journal directory and restricts it to administrators.
+        Fails when an existing journal directory could have been prepared by a standard user.
 
     .DESCRIPTION
-        ProgramData lets standard users create files, so the directory is limited to SYSTEM
-        and the Administrators group, without inherited entries. A standard user can then
-        not plant or edit the journal that a rollback would apply.
+        ProgramData lets standard users create directories, so one could create the journal
+        directory before the first run and keep access to the files in it. An existing
+        directory is accepted only when it is not a reparse point and is owned by SYSTEM,
+        the Administrators group or the current user. A missing directory is accepted.
 
     .PARAMETER Path
         The directory.
 
     .EXAMPLE
-        Initialize-WOJournalDirectory -Path (Split-Path -Parent (Get-WOJournalPath))
+        Assert-WOJournalDirectory -Path (Split-Path -Parent (Get-WOJournalPath))
 
     .NOTES
         Author  : Lars Krogh
@@ -476,9 +477,46 @@ function Initialize-WOJournalDirectory {
         [Parameter(Mandatory)]
         [string]$Path
     )
-    if (-not (Test-Path -LiteralPath $Path -PathType Container)) {
-        $null = New-Item -Path $Path -ItemType Directory
+    if (-not (Test-Path -LiteralPath $Path)) {
+        return
     }
+    $item = Get-Item -LiteralPath $Path -Force
+    if (-not $item.PSIsContainer -or ($item.Attributes -band [IO.FileAttributes]::ReparsePoint)) {
+        throw "The journal directory $Path is not a plain directory"
+    }
+    $owner = (Get-Acl -LiteralPath $Path).GetOwner([System.Security.Principal.SecurityIdentifier]).Value
+    $trusted = 'S-1-5-18', 'S-1-5-32-544', [System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value
+    if ($owner -notin $trusted) {
+        throw "The journal directory $Path is owned by $owner, not by SYSTEM or Administrators"
+    }
+}
+
+function Initialize-WOJournalDirectory {
+    <#
+    .SYNOPSIS
+        Creates the journal directory and restricts it to administrators.
+
+    .DESCRIPTION
+        ProgramData lets standard users create files, so the directory is limited to SYSTEM
+        and the Administrators group, without inherited entries. A new directory is created
+        together with that ACL, and an existing one must pass Assert-WOJournalDirectory. A
+        standard user can then not plant or edit the journal that a rollback would apply.
+
+    .PARAMETER Path
+        The directory.
+
+    .EXAMPLE
+        Initialize-WOJournalDirectory -Path (Split-Path -Parent (Get-WOJournalPath))
+
+    .NOTES
+        Author  : Lars Krogh
+        Version : 1.1.0
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [string]$Path
+    )
     $acl = New-Object System.Security.AccessControl.DirectorySecurity
     $acl.SetAccessRuleProtection($true, $false)
     $inherit = [System.Security.AccessControl.InheritanceFlags]'ContainerInherit, ObjectInherit'
@@ -486,6 +524,10 @@ function Initialize-WOJournalDirectory {
         $identity = New-Object System.Security.Principal.SecurityIdentifier ($sid)
         $rule = New-Object System.Security.AccessControl.FileSystemAccessRule ($identity, 'FullControl', $inherit, 'None', 'Allow')
         $acl.AddAccessRule($rule)
+    }
+    Assert-WOJournalDirectory -Path $Path
+    if (-not (Test-Path -LiteralPath $Path)) {
+        $null = [IO.Directory]::CreateDirectory($Path, $acl)
     }
     $acl.SetOwner((New-Object System.Security.Principal.SecurityIdentifier ('S-1-5-32-544')))
     Set-Acl -LiteralPath $Path -AclObject $acl
@@ -522,6 +564,7 @@ switch ($Action) {
     }
     'ReadJournal' {
         $path = Get-WOJournalPath
+        Assert-WOJournalDirectory -Path (Split-Path -Parent $path)
         $content = ''
         if (Test-Path -LiteralPath $path -PathType Leaf) {
             $content = [IO.File]::ReadAllText($path, [Text.Encoding]::UTF8)

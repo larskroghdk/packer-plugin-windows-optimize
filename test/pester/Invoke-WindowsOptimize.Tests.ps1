@@ -15,7 +15,7 @@
 
 .NOTES
     Author  : Lars Krogh
-    Version : 1.0.0
+    Version : 1.1.0
 #>
 
 
@@ -149,6 +149,22 @@ Describe 'Invoke-WindowsOptimize.ps1' {
         $journal = ConvertFrom-EntryOutput -Bytes $result.Bytes
         $journal.path | Should -Be (Join-Path -Path $env:ProgramData -ChildPath 'packer-plugin-windows-optimize\journal.json')
         $journal.PSObject.Properties.Name | Should -Contain 'content'
+    }
+    It 'ReadJournal refuses a journal directory that is a link' {
+        $programData = Join-Path -Path $TestDrive -ChildPath 'ProgramData'
+        $null = New-Item -ItemType Directory -Path $programData
+        $null = New-Item -ItemType Junction -Path (Join-Path -Path $programData -ChildPath 'packer-plugin-windows-optimize') -Target (Join-Path -Path $env:SystemRoot -ChildPath 'System32')
+        $saved = $env:ProgramData
+        try {
+            $env:ProgramData = $programData
+            $result = Invoke-Entry -Action 'ReadJournal'
+        }
+        finally {
+            $env:ProgramData = $saved
+        }
+        $result.ExitCode | Should -Be 1
+        $result.StdErr | Should -Match 'not a plain directory'
+        $result.Bytes | Should -BeNullOrEmpty
     }
     It 'exits 1 with the error on stderr when a required input is missing' {
         $result = Invoke-Entry -Action 'Inspect'

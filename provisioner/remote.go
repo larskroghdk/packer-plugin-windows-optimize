@@ -43,15 +43,16 @@ func powershellCommand(args string) string {
 	return `powershell.exe -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass ` + args
 }
 
-// install creates the working directory and uploads every guest script.
+// install creates the private working directory and uploads every guest
+// script.
 //
 // Returns:
 //   - error: The directory cannot be created or a script cannot be uploaded.
 //
 // Author: Lars Krogh
-// Version: 1.0.0
+// Version: 1.1.0
 func (r *remote) install(ctx context.Context) error {
-	create := powershellCommand(fmt.Sprintf(`-Command "$ErrorActionPreference = 'Stop'; $null = New-Item -ItemType Directory -Force -Path '%s'"`, r.dir))
+	create := powershellCommand(`-Command "` + privateDirectoryScript(r.dir) + `"`)
 	if err := r.exec(ctx, create); err != nil {
 		return fmt.Errorf("create guest working directory %s: %w", r.dir, err)
 	}
@@ -70,6 +71,20 @@ func (r *remote) install(ctx context.Context) error {
 		}
 	}
 	return nil
+}
+
+// privateDirectoryScript returns PowerShell that creates dir with an ACL
+// granting access only to SYSTEM and Administrators. The directory and its ACL
+// are created in one call, and an existing directory is accepted only when
+// SYSTEM, Administrators or the current user owns it. A non-administrator
+// cannot give a directory those owners, so one created in advance to tamper
+// with the uploaded scripts is rejected. The ACL is then reapplied. Only the
+// access rules are written, which needs no SeSecurityPrivilege.
+//
+// Author: Lars Krogh
+// Version: 1.0.0
+func privateDirectoryScript(dir string) string {
+	return fmt.Sprintf(`$ErrorActionPreference = 'Stop'; $d = '%s'; $acl = New-Object System.Security.AccessControl.DirectorySecurity; $acl.SetAccessRuleProtection($true, $false); foreach ($id in 'S-1-5-18', 'S-1-5-32-544') { $rule = New-Object System.Security.AccessControl.FileSystemAccessRule(([System.Security.Principal.SecurityIdentifier]$id), 'FullControl', 'ContainerInherit, ObjectInherit', 'None', 'Allow'); $acl.AddAccessRule($rule) }; $null = [IO.Directory]::CreateDirectory($d, $acl); $owner = (Get-Acl -LiteralPath $d).GetOwner([System.Security.Principal.SecurityIdentifier]).Value; if ($owner -notin 'S-1-5-18', 'S-1-5-32-544', [System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value) { throw ('Guest working directory ' + $d + ' is owned by ' + $owner) }; (New-Object System.IO.DirectoryInfo($d)).SetAccessControl($acl)`, strings.ReplaceAll(dir, "'", "''"))
 }
 
 // cleanup removes the working directory and everything in it.

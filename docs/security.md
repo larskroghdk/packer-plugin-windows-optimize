@@ -27,9 +27,9 @@ The catalog also contains nothing that weakens passwords, accounts, SMB, TLS, Sm
 ## Trust model
 
 - The plugin runs with the rights of the Packer WinRM user, which must be an elevated administrator. It refuses to run otherwise.
-- Guest scripts are embedded in the plugin binary and uploaded to a new directory under `C:\Windows\Temp` for each run, and removed afterwards. They are run with `-ExecutionPolicy Bypass` for that process only; the machine's execution policy is not changed.
+- Guest scripts are embedded in the plugin binary and uploaded to a new directory under `C:\Windows\Temp` for each run, and removed afterwards. The directory is created together with an ACL for SYSTEM and Administrators only, and an existing directory is refused unless one of them or the build user owns it. The scripts run with `-ExecutionPolicy Bypass` for that process only; the machine's execution policy is not changed.
 - Every value written comes from the embedded catalog or, for rollback, from the journal. The configuration can only select catalog entries by ID; it can't supply registry paths or values.
-- The rollback journal directory is restricted to SYSTEM and Administrators. A rollback restores only target kinds the plugin knows, and only values it can write (`REG_DWORD`, `REG_SZ`, absence, and the fixed service, task, power and hibernation states).
+- The rollback journal directory is created with an ACL for SYSTEM and Administrators only. An existing directory that is a link, or is owned by anyone other than SYSTEM, Administrators or the build user, is refused before the journal is read or written, so a standard user can't plant a journal in advance. A rollback restores only target kinds the plugin knows, and only values it can write (`REG_DWORD`, `REG_SZ`, absence, and the fixed service, task, power and hibernation states).
 - No secrets are read, written or logged. The report contains OS facts, the WinRM user name, and the values of the targets.
 
 ## Release integrity
