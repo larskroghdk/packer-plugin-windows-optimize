@@ -3,6 +3,8 @@ builds:
   - env:
       - CGO_ENABLED=0
     goos:
+      - linux
+      - darwin
       - windows
     goarch:
       - amd64
@@ -25,7 +27,7 @@ changelog:
 snapshot:
   version_template: '{{ .Version }}-SNAPSHOT-{{ .ShortCommit }}'
 release:
-  draft: true
+  draft: false
   prerelease: auto
 archives:
   - formats:

@@ -65,7 +65,7 @@ generate-check: generate
 catalog:
 	go run ./cmd/catalogdoc
 
-init: $(GORELEASER) $(STATICCHECK) $(PACKER_SDC)
+init: $(STATICCHECK) $(PACKER_SDC)
 	go mod download
 
 $(GORELEASER):

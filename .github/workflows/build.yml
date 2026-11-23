@@ -1,5 +1,6 @@
 name: Build
 on:
+  workflow_call:
   push:
     branches: [main]
   pull_request:
@@ -12,17 +13,18 @@ jobs:
     steps:
       - name: Configure git
         run: git config --global core.autocrlf false
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
-      - uses: actions/setup-go@v7
+      - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
         with:
           go-version-file: go.mod
-      - uses: hashicorp/setup-packer@v3
+      - uses: hashicorp/setup-packer@ce93c3c08a6c2ff2275bf4b54ff0d9a75f6c9789 # v3
       - name: Set up msys2
-        uses: msys2/setup-msys2@v2
+        uses: msys2/setup-msys2@3c51bf698df1e37b2261f53cb67797b97761185c # v2
         with:
-          install: make tar zip unzip
+          msystem: UCRT64
+          install: make tar zip unzip mingw-w64-ucrt-x86_64-jq
           path-type: inherit
       - name: Install PowerShell test tools
         run: |
@@ -31,12 +33,29 @@ jobs:
           Install-Module PSScriptAnalyzer -RequiredVersion 1.22.0 -Scope CurrentUser -Force
           $modules = Join-Path ([Environment]::GetFolderPath("MyDocuments")) "WindowsPowerShell\Modules"
           $null = New-Item -ItemType Directory -Force -Path $modules
-          Save-Module Pester -RequiredVersion 6.2.0 -Path $modules -Force
+          Save-Module Pester -RequiredVersion 5.6.1 -Path $modules -Force
       - name: Check, test and build
         run: |
-          msys2 -c 'set -euo pipefail; make init; make generate-check; make check; make release-snapshot'
+          msys2 -c 'set -euo pipefail; make init; make generate-check; make check'
+      - name: Determine Packer plugin API version
+        if: github.ref_type != 'tag'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $description = go run . describe | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0 -or -not $description.api_version) {
+            throw 'Could not determine the Packer plugin API version'
+          }
+          "API_VERSION=$($description.api_version)" >> $env:GITHUB_ENV
+      - name: Build snapshot artifacts
+        if: github.ref_type != 'tag'
+        uses: goreleaser/goreleaser-action@a4f02ab5355a589de60d917a659ce617ed19b3de # v7.3.0
+        with:
+          version: v2.18.2
+          args: release --snapshot --skip=publish,sign --clean
       - name: Archive
-        uses: actions/upload-artifact@v7
+        if: github.ref_type != 'tag'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: artifacts
           path: |
