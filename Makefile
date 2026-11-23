@@ -1,6 +1,7 @@
 GOPATH              := $(shell go env GOPATH | tr '\\' '/')
 GORELEASER_VERSION  := 2.18.2
 STATICCHECK_VERSION := 2025.1.1
+GOVULNCHECK_VERSION := v1.10.0
 PACKER_SDC_VERSION  := $(shell go list -m -f '{{.Version}}' github.com/hashicorp/packer-plugin-sdk)
 GORELEASER          ?= $(GOPATH)/bin/goreleaser
 STATICCHECK         ?= $(GOPATH)/bin/staticcheck
@@ -15,7 +16,9 @@ API_VERSION          = $(shell go run . describe 2>/dev/null | sed -n 's/.*"api_
 check: lint typecheck test
 
 lint: fmt-check doccheck catalog-check pslint hclfmt
+	go mod tidy -diff
 	$(STATICCHECK) ./...
+	go run golang.org/x/vuln/cmd/govulncheck@$(GOVULNCHECK_VERSION) ./...
 
 fmt-check:
 	@out="$$(gofmt -l .)"; if [ -n "$$out" ]; then echo "gofmt needed:"; echo "$$out"; exit 1; fi
