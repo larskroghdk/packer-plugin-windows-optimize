@@ -13,7 +13,7 @@
 
 .NOTES
     Author  : Lars Krogh
-    Version : 1.2.0
+    Version : 1.3.0
 #>
 
 
@@ -74,15 +74,22 @@ BeforeAll {
         .PARAMETER CodexCommand
             The Codex command name in the settings.
 
+        .PARAMETER CodexTimeoutSeconds
+            The Codex timeout in the settings. The default leaves room for a slow, loaded machine; only the timeout test lowers it.
+
         .EXAMPLE
             Initialize-TestRepository
 
+        .EXAMPLE
+            Initialize-TestRepository -CodexTimeoutSeconds 5
+
         .NOTES
             Author  : Lars Krogh
-            Version : 1.0.0
+            Version : 1.1.0
         #>
         param(
-            [string]$CodexCommand = 'codex'
+            [string]$CodexCommand = 'codex',
+            [int]$CodexTimeoutSeconds = 300
         )
         $script:repo = Join-Path $TestDrive ([guid]::NewGuid().ToString('N'))
         $remote = "$repo-remote.git"
@@ -94,10 +101,10 @@ BeforeAll {
         }
         $settings = @"
 @{
-    Codex = @{ Command = '$CodexCommand'; Model = ''; TimeoutSeconds = 20; MaxAttempts = 1; MaxDiffBytes = 100000; BlockingSeverities = @('critical', 'high') }
-    Gemini = @{ Command = 'gemini'; Model = ''; TimeoutSeconds = 30; MaxAttempts = 1; CacheDays = 7; InputUsdPerMillionTokens = 1; OutputUsdPerMillionTokens = 10 }
-    Copilot = @{ Command = 'copilot'; Model = ''; TimeoutSeconds = 30; MaxAiCredits = 0; WriteRules = @('*.md', 'docs/**'); AllowedPathPatterns = @('*.md', 'docs/*'); DenyTools = @('shell(git commit)', 'shell(git push)') }
-    CheckTimeoutSeconds = 60
+    Codex = @{ Command = '$CodexCommand'; Model = ''; TimeoutSeconds = $CodexTimeoutSeconds; MaxAttempts = 1; MaxDiffBytes = 100000; BlockingSeverities = @('critical', 'high') }
+    Gemini = @{ Command = 'gemini'; Model = ''; TimeoutSeconds = 300; MaxAttempts = 1; CacheDays = 7; InputUsdPerMillionTokens = 1; OutputUsdPerMillionTokens = 10 }
+    Copilot = @{ Command = 'copilot'; Model = ''; TimeoutSeconds = 300; MaxAiCredits = 0; WriteRules = @('*.md', 'docs/**'); AllowedPathPatterns = @('*.md', 'docs/*'); DenyTools = @('shell(git commit)', 'shell(git push)') }
+    CheckTimeoutSeconds = 300
     Checks = @(
         @{ Name = 'fail marker'; Paths = @('*'); Command = @('pwsh', '-NoProfile', '-Command', 'if (Test-Path FAIL) { exit 1 }') }
     )
@@ -301,6 +308,7 @@ Describe 'Pre-commit Codex gate' {
         (Invoke-Git log --oneline).Output | Should -Not -Match 'raced'
     }
     It 'fails closed when Codex times out' {
+        Initialize-TestRepository -CodexTimeoutSeconds 5
         $env:FAKE_CODEX_MODE = 'hang'
         Add-StagedChange -Name 'main.txt'
         $result = Invoke-Git commit -m 'timeout'
