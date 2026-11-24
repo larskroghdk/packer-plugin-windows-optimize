@@ -11,7 +11,7 @@ PESTER_SHELL        ?= powershell.exe
 PACKER              ?= packer
 API_VERSION          = $(shell go run . describe 2>/dev/null | sed -n 's/.*"api_version":"\([^"]*\)".*/\1/p')
 
-.PHONY: check lint fmt-check doccheck catalog-check pslint hclfmt typecheck test test-go test-ps test-integration fmt generate generate-check catalog init build release-snapshot release clean
+.PHONY: check lint fmt-check doccheck catalog-check pslint hclfmt typecheck test test-go test-ps test-ai test-integration fmt generate generate-check catalog init build release-snapshot release clean
 
 check: lint typecheck test
 
@@ -42,13 +42,17 @@ typecheck:
 	go vet ./...
 	go vet -tags integration ./test/integration
 
-test: test-go test-ps
+test: test-go test-ps test-ai
 
 test-go:
 	go test ./...
 
 test-ps:
 	$(PESTER_SHELL) -NoProfile -ExecutionPolicy Bypass -Command '$$env:PSModulePath = (Join-Path ([Environment]::GetFolderPath("MyDocuments")) "WindowsPowerShell\Modules") + ";" + [Environment]::GetEnvironmentVariable("PSModulePath", "Machine"); Import-Module Pester -MinimumVersion 5.0; $$c = New-PesterConfiguration; $$c.Run.Path = "test/pester"; $$c.Run.Exit = $$true; $$c.Output.Verbosity = "Detailed"; Invoke-Pester -Configuration $$c'
+
+test-ai:
+	pwsh -NoProfile -Command '$$ErrorActionPreference = "Stop"; $$r = "scripts/ai", "test/ai" | ForEach-Object { Invoke-ScriptAnalyzer -Path $$_ -Recurse -Severity Warning, Error }; $$r; if ($$r) { exit 1 }'
+	pwsh -NoProfile -Command '$$ErrorActionPreference = "Stop"; Import-Module Pester -MinimumVersion 5.6.1; $$c = New-PesterConfiguration; $$c.Run.Path = "test/ai"; $$c.Run.Exit = $$true; $$c.Output.Verbosity = "Normal"; Invoke-Pester -Configuration $$c'
 
 test-integration:
 	go test -tags integration -v -count=1 -timeout 90m ./test/integration

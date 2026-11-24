@@ -31,6 +31,7 @@ jobs:
           $ErrorActionPreference = "Stop"
           Set-PSRepository PSGallery -InstallationPolicy Trusted
           Install-Module PSScriptAnalyzer -RequiredVersion 1.22.0 -Scope CurrentUser -Force
+          Install-Module Pester -RequiredVersion 5.6.1 -Scope CurrentUser -Force -SkipPublisherCheck
           $modules = Join-Path ([Environment]::GetFolderPath("MyDocuments")) "WindowsPowerShell\Modules"
           $null = New-Item -ItemType Directory -Force -Path $modules
           Save-Module Pester -RequiredVersion 5.6.1 -Path $modules -Force

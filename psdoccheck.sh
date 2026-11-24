@@ -2,7 +2,7 @@
 
 set -eu
 
-problems=$(find guest test -name '*.ps1' -exec awk '
+problems=$(find guest test scripts -name '*.ps1' -exec awk '
     /^[[:space:]]*<#[[:space:]]*$/ { in_help = 1; has_synopsis = 0; start = FNR; next }
     in_help && /^[[:space:]]*#>[[:space:]]*$/ {
         if (!has_synopsis) print FILENAME ":" start ": help block without .SYNOPSIS"
