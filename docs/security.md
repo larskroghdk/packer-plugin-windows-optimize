@@ -38,4 +38,4 @@ Release archives are listed in a `SHA256SUMS` file signed with the maintainer's 
 
 ## Reporting a vulnerability
 
-Report security issues privately through GitHub's "Report a vulnerability" on the repository, not in a public issue.
+Report security issues privately, as described in the [security policy](../.github/SECURITY.md), not in a public issue.

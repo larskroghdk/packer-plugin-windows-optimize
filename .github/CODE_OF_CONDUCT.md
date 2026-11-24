@@ -38,7 +38,7 @@ For this project, community spaces are the repository's issues, pull requests, r
 
 ## Enforcement
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be reported privately to the maintainer. Use the "Report content" option in the menu of the comment, issue or pull request, and choose to report it to the repository maintainers. If that option isn't available, or the conduct needs GitHub's involvement, use GitHub's [abuse reporting](https://github.com/contact/report-abuse). Don't report security vulnerabilities this way; follow the [security policy](../docs/security.md#reporting-a-vulnerability).
+Instances of abusive, harassing, or otherwise unacceptable behavior may be reported privately to the maintainer. Use the "Report content" option in the menu of the comment, issue or pull request, and choose to report it to the repository maintainers. If that option isn't available, or the conduct needs GitHub's involvement, use GitHub's [abuse reporting](https://github.com/contact/report-abuse). Don't report security vulnerabilities this way; follow the [security policy](SECURITY.md).
 
 All complaints will be reviewed and investigated promptly and fairly.
 
